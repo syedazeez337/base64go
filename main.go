@@ -33,7 +33,46 @@ func (t Base64) getChar(i int) byte {
 }
 
 func main() {
-	table := baseInit()
-	res := table.getChar(28)
-	fmt.Println(string(res))
+	s := "Hi"
+	bit := s[0] >> 2
+	fmt.Printf("H-> %v, %[1]b\n", s[0])
+	fmt.Printf("    %v, %[1]b\n", bit)
+	fmt.Printf("    %v, %[1]b\n", 0b10010111 & 0b00110000)
+}
+
+// calculate the encode length
+func calcEncodeLength(input []byte) int {
+	var nOutput int
+	if len(input) < 3 {
+		nOutput = 4
+		return nOutput
+	}
+
+	nOutput = divCeil(len(input), 3)
+	return nOutput * 4
+}
+
+// division ceiling
+func divCeil(x, y int) int {
+	return (x + (y - 1)) / y
+}
+
+// Calculate decode length function
+func calcDecodeLength(input []byte) int {
+	var nOutput int
+	if len(input) < 4 {
+		nOutput = 3
+		return nOutput
+	}
+
+	nOutput = divFloor(len(input), 4)
+	return nOutput * 3
+}
+
+func divFloor(x, y int) int {
+	if y == 0 {
+		panic("division by zero")
+	}
+
+	return x / y
 }
