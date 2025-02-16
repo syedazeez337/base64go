@@ -33,11 +33,59 @@ func (t Base64) getChar(i int) byte {
 }
 
 func main() {
-	s := "Hi"
-	bit := s[0] >> 2
-	fmt.Printf("H-> %v, %[1]b\n", s[0])
-	fmt.Printf("    %v, %[1]b\n", bit)
-	fmt.Printf("    %v, %[1]b\n", 0b10010111 & 0b00110000)
+	b64 := baseInit()
+
+	input := []byte("Hello, Go!")
+	encoded, err := b64.encode(input)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Encoded:", string(encoded))
+}
+
+// Encode function
+func (b Base64) encode(input []byte) ([]byte, error) {
+	if len(input) == 0 {
+		return []byte(""), nil
+	}
+
+	nOut := calcEncodeLength(input)
+	out := make([]byte, nOut)
+	var buf [3]byte
+	count := 0
+	iout := 0
+
+	for i := 0; i < len(input); i++ {
+		buf[count] = input[i]
+		count++
+		if count == 3 {
+			out[iout] = b.getChar(int(buf[0] >> 2))
+			out[iout+1] = b.getChar(int(((buf[0] & 0x03) << 4) | (buf[1] >> 4)))
+			out[iout+2] = b.getChar(int(((buf[1] & 0x0f) << 2) | (buf[2] >> 6)))
+			out[iout+3] = b.getChar(int(buf[2] & 0x3f))
+			iout += 4
+			count = 0
+		}
+	}
+
+	// Handle any remaining bytes (with appropriate padding).
+	if count == 1 {
+		// Only one byte left.
+		out[iout] = b.getChar(int(buf[0] >> 2))
+		out[iout+1] = b.getChar(int((buf[0] & 0x03) << 4))
+		out[iout+2] = '='
+		out[iout+3] = '='
+	} else if count == 2 {
+		// Two bytes remain.
+		out[iout] = b.getChar(int(buf[0] >> 2))
+		out[iout+1] = b.getChar(int(((buf[0] & 0x03) << 4) | (buf[1] >> 4)))
+		out[iout+2] = b.getChar(int((buf[1] & 0x0f) << 2))
+		out[iout+3] = '='
+	}
+	
+	return out, nil
 }
 
 // calculate the encode length
